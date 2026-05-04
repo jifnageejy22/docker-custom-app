@@ -1,0 +1,25 @@
+name: Deploy to Azure VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Connect & Deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: azureuser
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd docker-custom-app
+            git pull
+            docker build -t my-nginx-app .
+            docker stop myapp || true
+            docker rm myapp || true
+            docker run -d -p 8081:80 --name myapp my-nginx-app
